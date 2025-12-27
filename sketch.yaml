@@ -1,0 +1,12 @@
+profiles:
+  default:
+    notes: yo waddup
+    fqbn: arduino:avr:mega
+    platforms:
+      - platform: arduino:avr (1.8.6)
+    libraries:
+
+default_profile: default
+default_port: /dev/ttyACM1
+default_port_config:
+  baudrate: 115200
