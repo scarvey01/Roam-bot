@@ -1,12 +1,12 @@
 profiles:
-  default:
-    notes: yo waddup
-    fqbn: arduino:avr:mega
+  uno:
+    fqbn: arduino:avr:uno
     platforms:
       - platform: arduino:avr (1.8.6)
     libraries:
+      - Servo (1.3.0)
 
-default_profile: default
-default_port: /dev/ttyACM1
+default_profile: uno
+default_port: /dev/ttyACM0
 default_port_config:
   baudrate: 115200

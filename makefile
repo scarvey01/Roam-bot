@@ -37,4 +37,5 @@ monitor:
 # alternative to arduino-cli monitor
 .PHONY: pico
 pico:
-	picocom $(PORT) -b $(BAUD) --imap crcrlf,lfcrlf --send-cmd 'ascii-xfr -svn' --receive-cmd 'ascii-xfr -rvn'
+	#picocom $(PORT) -b $(BAUD) --imap crcrlf,lfcrlf --send-cmd 'ascii-xfr -svn' --receive-cmd 'ascii-xfr -rvn'
+	picocom $(PORT) -b $(BAUD) --omap crcrlf --send-cmd 'ascii-xfr -svn' --receive-cmd 'ascii-xfr -rvn'
