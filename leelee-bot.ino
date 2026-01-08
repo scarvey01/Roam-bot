@@ -18,7 +18,7 @@
 #define MOTOR_IN1 11
 #define MOTOR_IN2 10
 #define MOTOR_IN3 9
-#define MOTOR_IN4 8
+#define MOTOR_IN4 6
 
 // helpful?
 #define MOTOR_LEFT MOTOR_IN1, MOTOR_IN2
@@ -47,7 +47,7 @@ typedef enum MOTOR_STATE {
 
 // Set a motor specified by pins in1 and in2 to a given `MOTOR_STATE`. `MOTOR_LEFT` and `MOTOR_RIGHT` can be
 // used in place of pins as convenience: `motor_set_state(MOTOR_LEFT, state)`.
-void motor_set_state(int in1, int in2, char state) {
+void motor_set_state(uint8_t in1, uint8_t in2, char state) {
   bool in1_on = state & 0b10;
   bool in2_on = state & 0b01;
   digitalWrite(in1, in1_on ? HIGH : LOW);
@@ -102,24 +102,32 @@ void test_motors() {
   delay(500);
 
   Serial.println("forward");
+  motor_set_state(MOTOR_LEFT, MOTOR_OFF);
+  motor_set_state(MOTOR_RIGHT, MOTOR_OFF);
   delay(200);
   motor_set_state(MOTOR_LEFT, MOTOR_FORWARD);
   motor_set_state(MOTOR_RIGHT, MOTOR_FORWARD);
   delay(1000);
 
   Serial.println("backward");
+  motor_set_state(MOTOR_LEFT, MOTOR_OFF);
+  motor_set_state(MOTOR_RIGHT, MOTOR_OFF);
   delay(200);
   motor_set_state(MOTOR_LEFT, MOTOR_BACKWARD);
   motor_set_state(MOTOR_RIGHT, MOTOR_BACKWARD);
   delay(1000);
 
   Serial.println("left");
+  motor_set_state(MOTOR_LEFT, MOTOR_OFF);
+  motor_set_state(MOTOR_RIGHT, MOTOR_OFF);
   delay(200);
   motor_set_state(MOTOR_LEFT, MOTOR_BACKWARD);
   motor_set_state(MOTOR_RIGHT, MOTOR_FORWARD);
   delay(1000);
 
   Serial.println("right");
+  motor_set_state(MOTOR_LEFT, MOTOR_OFF);
+  motor_set_state(MOTOR_RIGHT, MOTOR_OFF);
   delay(200);
   motor_set_state(MOTOR_LEFT, MOTOR_FORWARD);
   motor_set_state(MOTOR_RIGHT, MOTOR_BACKWARD);
@@ -220,8 +228,9 @@ void setup() {
   Serial.begin(BAUD);
   swivel.write(90);
 
-  test_desired();
+  //test_desired();
 }
 
 void loop() {
+  test_motors();
 }
