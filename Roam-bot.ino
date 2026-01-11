@@ -22,17 +22,17 @@
 
 /* CONSTANTS */
 #define DISTANCE_THRESHOLD 12   // cm
-#define SAMPLE_COUNT 7          // number of distance samples
+#define SAMPLE_COUNT 7
 #define ECHO_TIMEOUT 30000      // us
 #define ECHO_TRIG_US 10         // us
-#define ECHO_CM_PER_US 0.01723  // conversion factor
+#define ECHO_CM_PER_US 0.01723
 
 /* GLOBALS */
 Servo swivel;
-long distanceSamples[SAMPLE_COUNT];
+float distanceSamples[SAMPLE_COUNT];
 int sampleIndex = 0;
 
-/*  MOTOR STATE ENUM */
+/* MOTOR STATE ENUM */
 typedef enum MOTOR_STATE {
   MOTOR_OFF = 0b00,
   MOTOR_BACKWARD = 0b01,
@@ -40,32 +40,25 @@ typedef enum MOTOR_STATE {
   MOTOR_OFF2 = 0b11
 } MOTOR_STATE;
 
-/* SETUP  */
+/* SETUP */
 void setup() {
-  // Motors
   pinMode(MOTOR_IN1, OUTPUT);
   pinMode(MOTOR_IN2, OUTPUT);
   pinMode(MOTOR_IN3, OUTPUT);
   pinMode(MOTOR_IN4, OUTPUT);
 
-  // Ultrasonic sensor
   pinMode(ECHO_ECHO, INPUT);
   pinMode(ECHO_TRIG, OUTPUT);
   pinMode(ECHO_VCC, OUTPUT);
   digitalWrite(ECHO_VCC, HIGH);
 
-  // Servo
   swivel.attach(SERVO_PIN);
-  swivel.write(98); // straight ahead
+  swivel.write(98);
 
-  // Buzzer
   pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
 
-  // Serial
   Serial.begin(9600);
 
-  // Clear distance samples
   clearSamples();
   stopMotors();
 
@@ -78,6 +71,7 @@ void loop() {
   storeSample(distance);
 
   float maxDist = getMaxSample();
+
   Serial.print("Distance: ");
   Serial.print(distance);
   Serial.print(" cm | Max(");
@@ -88,14 +82,14 @@ void loop() {
   if (maxDist > DISTANCE_THRESHOLD) {
     moveForward();
   } else {
-    beep(2000, 150); // obstacle alert
+    beep(2000, 150);
     handleObstacle();
   }
 
   delay(50);
 }
 
-/*ULTRASONIC SENSOR */
+/* ULTRASONIC */
 unsigned long echo_get_dist() {
   digitalWrite(ECHO_TRIG, LOW);
   delayMicroseconds(2);
@@ -121,7 +115,9 @@ float getMaxSample() {
 }
 
 void clearSamples() {
-  for (int i = 0; i < SAMPLE_COUNT; i++) distanceSamples[i] = 300;
+  for (int i = 0; i < SAMPLE_COUNT; i++) {
+    distanceSamples[i] = 300;
+  }
 }
 
 /* BUZZER */
@@ -131,12 +127,10 @@ void beep(int frequency, int duration) {
   noTone(BUZZER_PIN);
 }
 
-/* MOTOR CONTROL  */
+/* MOTOR CONTROL */
 void motor_set_state(uint8_t in1, uint8_t in2, char state) {
-  bool in1_on = state & 0b10;
-  bool in2_on = state & 0b01;
-  digitalWrite(in1, in1_on ? HIGH : LOW);
-  digitalWrite(in2, in2_on ? HIGH : LOW);
+  digitalWrite(in1, (state & 0b10) ? HIGH : LOW);
+  digitalWrite(in2, (state & 0b01) ? HIGH : LOW);
 }
 
 void moveForward() {
@@ -171,14 +165,14 @@ void handleObstacle() {
   stopMotors();
   delay(100);
 
-  // back up slightly
+  // Back up
   Serial.println("Backing up...");
   moveBackward();
   delay(400);
   stopMotors();
   delay(100);
 
-  // scan left/right
+  // Scan
   int turnDir = scanForBestDirection();
 
   if (turnDir < 0) {
@@ -189,31 +183,43 @@ void handleObstacle() {
     pivotRight();
   }
 
-  // turn until path is clear or timeout
+  // turning
   unsigned long startTime = millis();
+  bool minimumTurnMet = false;
+
   while (millis() - startTime < 1500) {
     float d = echo_get_dist() * ECHO_CM_PER_US;
+
+    if (millis() - startTime > 600) {
+      minimumTurnMet = true;
+    }
+
     Serial.print("Turning distance: ");
     Serial.println(d);
-    if (d > DISTANCE_THRESHOLD + 5) break;
+
+    if (minimumTurnMet && d > DISTANCE_THRESHOLD + 5) {
+      break;
+    }
   }
 
   stopMotors();
-  swivel.write(98); // reset servo
+  swivel.write(98);
   clearSamples();
 }
 
 /* SERVO SCAN */
 int scanForBestDirection() {
-  swivel.write(180); // left
+  swivel.write(180);
   delay(300);
   float leftDist = echo_get_dist() * ECHO_CM_PER_US;
-  Serial.print("Left scan: "); Serial.println(leftDist);
+  Serial.print("Left scan: ");
+  Serial.println(leftDist);
 
-  swivel.write(0);   // right
+  swivel.write(0);
   delay(300);
   float rightDist = echo_get_dist() * ECHO_CM_PER_US;
-  Serial.print("Right scan: "); Serial.println(rightDist);
+  Serial.print("Right scan: ");
+  Serial.println(rightDist);
 
   return (leftDist > rightDist) ? -1 : 1;
 }
